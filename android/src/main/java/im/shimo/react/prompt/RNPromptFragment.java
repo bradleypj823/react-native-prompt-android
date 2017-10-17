@@ -1,5 +1,6 @@
 package im.shimo.react.prompt;
 
+
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
@@ -8,8 +9,8 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.view.LayoutInflater;
-import android.view.WindowManager;
 import android.widget.EditText;
+
 
 import javax.annotation.Nullable;
 
@@ -31,10 +32,7 @@ public class RNPromptFragment extends DialogFragment implements DialogInterface.
     public enum PromptTypes {
         TYPE_DEFAULT("default"),
         PLAIN_TEXT("plain-text"),
-        SECURE_TEXT("secure-text"),
-        NUMERIC("numeric"),
-        EMAIL_ADDRESS("email-address"),
-        PHONE_PAD("phone-pad");
+        SECURE_TEXT("secure-text");
 
         private final String mName;
 
@@ -48,7 +46,7 @@ public class RNPromptFragment extends DialogFragment implements DialogInterface.
         }
     }
 
-    private
+    private final
     @Nullable
     RNPromptModule.PromptFragmentListener mListener;
 
@@ -56,11 +54,14 @@ public class RNPromptFragment extends DialogFragment implements DialogInterface.
         mListener = null;
     }
 
-    public void setListener(@Nullable RNPromptModule.PromptFragmentListener listener) {
+    public RNPromptFragment(@Nullable RNPromptModule.PromptFragmentListener listener, Bundle arguments) {
         mListener = listener;
+        setArguments(arguments);
     }
 
-    public Dialog createDialog(Context activityContext, Bundle arguments) {
+    public static Dialog createDialog(
+        Context activityContext, Bundle arguments, RNPromptFragment fragment) {
+
         AlertDialog.Builder builder;
         String style = arguments.containsKey(ARG_STYLE) ? arguments.getString(ARG_STYLE) : "default";
         style = style != null ? style : "default";
@@ -77,13 +78,13 @@ public class RNPromptFragment extends DialogFragment implements DialogInterface.
         builder.setTitle(arguments.getString(ARG_TITLE));
 
         if (arguments.containsKey(ARG_BUTTON_POSITIVE)) {
-            builder.setPositiveButton(arguments.getString(ARG_BUTTON_POSITIVE), this);
+            builder.setPositiveButton(arguments.getString(ARG_BUTTON_POSITIVE), fragment);
         }
         if (arguments.containsKey(ARG_BUTTON_NEGATIVE)) {
-            builder.setNegativeButton(arguments.getString(ARG_BUTTON_NEGATIVE), this);
+            builder.setNegativeButton(arguments.getString(ARG_BUTTON_NEGATIVE), fragment);
         }
         if (arguments.containsKey(ARG_BUTTON_NEUTRAL)) {
-            builder.setNeutralButton(arguments.getString(ARG_BUTTON_NEUTRAL), this);
+            builder.setNeutralButton(arguments.getString(ARG_BUTTON_NEUTRAL), fragment);
         }
         // if both message and items are set, Android will only show the message
         // and ignore the items argument entirely
@@ -92,7 +93,7 @@ public class RNPromptFragment extends DialogFragment implements DialogInterface.
         }
 
         if (arguments.containsKey(ARG_ITEMS)) {
-            builder.setItems(arguments.getCharSequenceArray(ARG_ITEMS), this);
+            builder.setItems(arguments.getCharSequenceArray(ARG_ITEMS), fragment);
         }
 
         AlertDialog alertDialog = builder.create();
@@ -117,15 +118,6 @@ public class RNPromptFragment extends DialogFragment implements DialogInterface.
                     case "secure-text":
                         type = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD;
                         break;
-                    case "numeric":
-                        type = InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_NUMBER;
-                        break;
-                    case "email-address":
-                        type = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
-                        break;
-                    case "phone-pad":
-                        type = InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_PHONE;
-                        break;
                     case "plain-text":
                     default:
                         type = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
@@ -133,6 +125,8 @@ public class RNPromptFragment extends DialogFragment implements DialogInterface.
             }
         }
         input.setInputType(type);
+
+        fragment.setTextInput(input);
 
         if (arguments.containsKey(ARG_DEFAULT_VALUE)) {
             String defaultValue = arguments.getString(ARG_DEFAULT_VALUE);
@@ -146,17 +140,19 @@ public class RNPromptFragment extends DialogFragment implements DialogInterface.
         if (arguments.containsKey(ARG_PLACEHOLDER)) {
             input.setHint(arguments.getString(ARG_PLACEHOLDER));
         }
+
         alertDialog.setView(input, 50, 15, 50, 0);
 
-        mInputText = input;
         return alertDialog;
+    }
+
+    public void setTextInput(EditText input) {
+        mInputText = input;
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog = this.createDialog(getActivity(), getArguments());
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-        return dialog;
+        return createDialog(getActivity(), getArguments(), this);
     }
 
     @Override

@@ -4,6 +4,7 @@ package im.shimo.react.prompt;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.facebook.common.logging.FLog;
 import com.facebook.react.bridge.Callback;
@@ -25,7 +26,7 @@ import javax.annotation.Nullable;
 public class RNPromptModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
 
     /* package */ static final String FRAGMENT_TAG =
-            "im.shimo.react.prompt.RNPromptModule";
+        "im.shimo.react.prompt.RNPromptModule";
 
     /* package */ static final String NAME = "PromptAndroid";
 
@@ -39,16 +40,16 @@ public class RNPromptModule extends ReactContextBaseJavaModule implements Lifecy
     /* package */ static final String KEY_ITEMS = "items";
     /* package */ static final String KEY_CANCELABLE = "cancelable";
     /* package */ static final String KEY_TYPE = "type";
-    /* package */ static final String KEY_STYLE = "style";
+    /* package */ static final String KEY_STYLE= "style";
     /* package */ static final String KEY_DEFAULT_VALUE = "defaultValue";
     /* package */ static final String KEY_PLACEHOLDER = "placeholder";
 
     /* package */ static final Map<String, Object> CONSTANTS = MapBuilder.<String, Object>of(
-            ACTION_BUTTON_CLICKED, ACTION_BUTTON_CLICKED,
-            ACTION_DISMISSED, ACTION_DISMISSED,
-            KEY_BUTTON_POSITIVE, DialogInterface.BUTTON_POSITIVE,
-            KEY_BUTTON_NEGATIVE, DialogInterface.BUTTON_NEGATIVE,
-            KEY_BUTTON_NEUTRAL, DialogInterface.BUTTON_NEUTRAL);
+        ACTION_BUTTON_CLICKED, ACTION_BUTTON_CLICKED,
+        ACTION_DISMISSED, ACTION_DISMISSED,
+        KEY_BUTTON_POSITIVE, DialogInterface.BUTTON_POSITIVE,
+        KEY_BUTTON_NEGATIVE, DialogInterface.BUTTON_NEGATIVE,
+        KEY_BUTTON_NEUTRAL, DialogInterface.BUTTON_NEUTRAL);
 
     private boolean mIsInForeground;
 
@@ -90,8 +91,8 @@ public class RNPromptModule extends ReactContextBaseJavaModule implements Lifecy
 
 
     @ReactMethod
-    public void promptWithArgs(ReadableMap options, final Callback callback) {
-        final FragmentManagerHelper fragmentManagerHelper = getFragmentManagerHelper();
+    public void promptWithArgs(ReadableMap options, Callback callback) {
+        FragmentManagerHelper fragmentManagerHelper = getFragmentManagerHelper();
         if (fragmentManagerHelper == null) {
             FLog.w(RNPromptModule.class, "Tried to show an alert while not attached to an Activity");
             return;
@@ -139,6 +140,7 @@ public class RNPromptModule extends ReactContextBaseJavaModule implements Lifecy
         if (options.hasKey(KEY_PLACEHOLDER)) {
             args.putString(KEY_PLACEHOLDER, options.getString(KEY_PLACEHOLDER));
         }
+
         fragmentManagerHelper.showNewAlert(mIsInForeground, args, callback);
     }
 
@@ -170,7 +172,7 @@ public class RNPromptModule extends ReactContextBaseJavaModule implements Lifecy
         private void dismissExisting() {
             if (mFragmentManager != null) {
                 RNPromptFragment oldFragment =
-                        (RNPromptFragment) mFragmentManager.findFragmentByTag(FRAGMENT_TAG);
+                    (RNPromptFragment) mFragmentManager.findFragmentByTag(FRAGMENT_TAG);
                 if (oldFragment != null) {
                     oldFragment.dismiss();
                 }
@@ -181,12 +183,9 @@ public class RNPromptModule extends ReactContextBaseJavaModule implements Lifecy
             dismissExisting();
 
             PromptFragmentListener actionListener =
-                    actionCallback != null ? new PromptFragmentListener(actionCallback) : null;
+                actionCallback != null ? new PromptFragmentListener(actionCallback) : null;
 
-            final RNPromptFragment promptFragment = new RNPromptFragment();
-            promptFragment.setListener(actionListener);
-            promptFragment.setArguments(arguments);
-
+            RNPromptFragment promptFragment = new RNPromptFragment(actionListener, arguments);
             if (isInForeground) {
                 if (arguments.containsKey(KEY_CANCELABLE)) {
                     promptFragment.setCancelable(arguments.getBoolean(KEY_CANCELABLE));

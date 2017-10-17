@@ -16,18 +16,6 @@ export type PromptType = $Enum<{
      * Secure text input alert
      */
         'secure-text': string,
-    /**
-     * Numeric input alert
-     */
-        'numeric': string,
-    /**
-     * Email address input alert
-     */
-        'email-address': string,
-    /**
-     * Phone pad input alert
-     */
-        'phone-pad': string,
 }>;
 
 export type PromptStyle = $Enum<{
@@ -72,31 +60,25 @@ export default function prompt(
     callbackOrButtons?: ?((text: string) => void) | ButtonsArray,
     options?: Options
 ): void {
-    const defaultButtons = [
-      {
-        text: 'Cancel',
-      },
-      {
-        text: 'OK',
-        onPress: callbackOrButtons
-      }
-    ];
-
-    let buttons = typeof callbackOrButtons === 'function'
-      ? defaultButtons
-      : callbackOrButtons;
-      
+    let buttons = callbackOrButtons;
     let config = {
         title: title || '',
         message: message || '',
     };
 
+    if (typeof callbackOrButtons === 'function') {
+        buttons.push({
+            text: 'OK',
+            onPress: callbackOrButtons
+        });
+    }
+
     if (options) {
         config = {
             ...config,
             cancelable: options.cancelable !== false,
-            type: options.type || 'default',
-            style: options.style || 'default',
+            type: options.type || 'defalt',
+            style: options.style || 'defalt',
             defaultValue: options.defaultValue || '',
             placeholder: options.placeholder || ''
         };
@@ -131,7 +113,7 @@ export default function prompt(
             if (buttonKey === PromptAndroid.buttonNeutral) {
                 buttonNeutral.onPress && buttonNeutral.onPress(input);
             } else if (buttonKey === PromptAndroid.buttonNegative) {
-                buttonNegative.onPress && buttonNegative.onPress();
+                buttonNegative.onPress && buttonNegative.onPress(input);
             } else if (buttonKey === PromptAndroid.buttonPositive) {
                 buttonPositive.onPress && buttonPositive.onPress(input);
             }

@@ -23,7 +23,7 @@ public class RNPromptPackage implements ReactPackage {
         return modules;
     }
 
-    // Removed in RN 0.47
+    @Override
     public List<Class<? extends JavaScriptModule>> createJSModules() {
         return Collections.emptyList();
     }
